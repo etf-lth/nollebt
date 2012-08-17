@@ -733,6 +733,7 @@ err_t rfcomm_uih_credits(struct rfcomm_pcb *pcb, u8_t credits, struct pbuf *q)
 	} else {
 		/* Credit only UIH frame */
 		((u8_t *)p->payload)[2] = (1 << 0) | (0 << 1);
+		((u8_t *)p->payload)[3] = credits;
 	}
 
 	/* Add information FCS to pbuf */
@@ -819,7 +820,7 @@ void rfcomm_process_msg(struct rfcomm_pcb *pcb, struct rfcomm_hdr *rfcommhdr, st
 				}
 			}
 			/* Get suggested parameters */
-			tpcb->cl = pnreq->i_cl >> 4;
+			tpcb->cl = 0; //pnreq->i_cl >> 4; // Disable CFC /kongo
 			tpcb->p = pnreq->p;
 			if(tpcb->n > pnreq->n) {
 				tpcb->n = pnreq->n;
@@ -834,6 +835,8 @@ void rfcomm_process_msg(struct rfcomm_pcb *pcb, struct rfcomm_hdr *rfcommhdr, st
 			} else {
 				pnreq->i_cl = 0; /* Remote device conforms to bluetooth version 1.0B. No flow control */
 			}
+            LWIP_DEBUGF(RFCOMM_DEBUG, ("rfcomm_process_msg: cl = %02x\n", tpcb->cl));
+
 			pnreq->p = tpcb->p;
 			pnreq->n = tpcb->n;
 			pnreq->k = tpcb->k;

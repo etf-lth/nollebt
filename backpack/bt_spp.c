@@ -209,11 +209,16 @@ err_t spp_recv(void *arg, struct rfcomm_pcb *pcb, struct pbuf *p, err_t err)
         int i;
 		for(i = 0; i < q->len; ++i) {
 			//LWIP_DEBUGF(BT_SPP_DEBUG, ("spp_recv: 0x%02x\n", ((u8_t *)q->payload)[i]));
-            printf("%c", ((u8_t *)q->payload)[i]);
+            //printf("%c", ((u8_t *)q->payload)[i]);
+            UART2PutChar(((u8_t *)q->payload)[i]);
 		}
 		//LWIP_DEBUGF(BT_SPP_DEBUG, ("spp_recv: STOP\n"));
 	}
-
+	
+    pbuf_free(p);
+    
+    //rfcomm_uih_credits(spp_pcb, 1, NULL);
+	
 	return ERR_OK;
 }
 
@@ -243,16 +248,17 @@ err_t rfcomm_accept(void *arg, struct rfcomm_pcb *pcb, err_t err)
 		//set recv callback
 		rfcomm_recv(pcb, spp_recv);
 
+        printf("Incoming connection, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
 	    struct pbuf *q = NULL;
         char str[] = "IRMA backpack säger hej!\n";
 	    q = pbuf_alloc(PBUF_RAW, strlen(str), PBUF_RAM);
         memcpy(q->payload, str, strlen(str));
 
-	    if (rfcomm_cl(pcb)) {
-		    rfcomm_uih_credits(pcb, PBUF_POOL_SIZE - rfcomm_remote_credits(pcb), q);
-	    } else {
+	    //if (rfcomm_cl(pcb)) {
+		//    rfcomm_uih_credits(pcb, PBUF_POOL_SIZE - rfcomm_remote_credits(pcb), q);
+	    //} else {
 		    rfcomm_uih(pcb, rfcomm_cn(pcb), q);
-	    }
+	    //}
 	    pbuf_free(q);
 	}
 
@@ -384,6 +390,7 @@ err_t l2cap_disconnected_cfm(void *arg, struct l2cap_pcb *pcb)
  * Parse the RFCOMM channel number from an SDP attribute list
  *
  */
+#if 0
 u8_t get_rfcomm_cn(u16_t attribl_bc, struct pbuf *attribute_list)
 {
 	u8_t i;
@@ -396,6 +403,7 @@ u8_t get_rfcomm_cn(u16_t attribl_bc, struct pbuf *attribute_list)
 	}
 	return 0;
 }
+#endif
 
 /*
  * rfcomm_connected():
@@ -431,6 +439,7 @@ err_t rfcomm_connected(void *arg, struct rfcomm_pcb *pcb, err_t err)
  * Disconnects the L2CAP SDP channel and connects to the RFCOMM one.
  * If no RFCOMM channel was found it initializes a search for other devices.
  */
+#if 0
 void sdp_attributes_recv(void *arg, struct sdp_pcb *sdppcb, u16_t attribl_bc, struct pbuf *p)
 {
 	struct l2cap_pcb *l2cappcb;
@@ -455,6 +464,7 @@ void sdp_attributes_recv(void *arg, struct sdp_pcb *sdppcb, u16_t attribl_bc, st
 	}
 	sdp_free(sdppcb);
 }
+#endif
 
 /*
  * l2cap_connected():
@@ -463,6 +473,7 @@ void sdp_attributes_recv(void *arg, struct sdp_pcb *sdppcb, u16_t attribl_bc, st
  * Sends a L2CAP configuration request.
  * Initializes a search for other devices if the connection attempt failed.
  */
+#if 0
 err_t l2cap_connected(void *arg, struct l2cap_pcb *l2cappcb, u16_t result, u16_t status)
 {
 	struct sdp_pcb *sdppcb;
@@ -515,6 +526,7 @@ err_t l2cap_connected(void *arg, struct l2cap_pcb *l2cappcb, u16_t result, u16_t
 
 	return ERR_OK;
 }
+#endif
 
 /*
  * inquiry_complete():
@@ -523,6 +535,7 @@ err_t l2cap_connected(void *arg, struct l2cap_pcb *l2cappcb, u16_t result, u16_t
  * Connects to the first device in the list.
  * Initializes a search for other devices if the inquiry failed.
  */
+#if 0
 err_t inquiry_complete(void *arg, struct hci_pcb *pcb, struct hci_inq_res *ires, u16_t result)
 {
 	struct l2cap_pcb *l2cappcb;
@@ -561,6 +574,7 @@ err_t inquiry_complete(void *arg, struct hci_pcb *pcb, struct hci_inq_res *ires,
 	}
 	return ERR_OK;
 }
+#endif
 
 /*
  * acl_wpl_complete():

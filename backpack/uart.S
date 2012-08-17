@@ -67,8 +67,12 @@ UARTInit:
     ldr     r1, =0x00800b38
     strb    r0, [r1]
 
-    mov     r0, #0x01
+    mov     r0, #0x87 //#0x01
     ldr     r1, =0x00800208
+    strb    r0, [r1]
+
+    mov     r0, #0x7 //#0x01
+    ldr     r1, =0x00800204
     strb    r0, [r1]
 
     mov     pc, lr
@@ -244,3 +248,80 @@ UART1WriteString:
     b       1b
 3:
     pop     {r4,r5,r6,pc}
+
+.global UART3SetBaudRate
+.thumb_func
+UART3SetBaudRate:
+    ldr     r1, =0x00800d14
+    strb    r0, [r1]
+    mov     pc, lr
+
+.global UART3WriteByte
+.thumb_func
+UART3WriteByte:
+    ldr     r1, =0x00800200
+    strb    r0, [r1]
+    mov     pc, lr
+
+.global UART3ReadByte
+.thumb_func
+UART3ReadByte:
+    ldr     r1, =0x00800200
+    ldrb    r0, [r1]
+    mov     pc, lr
+
+.global UART3GetRxFIFOSize
+.thumb_func
+UART3GetRxFIFOSize:
+    ldr     r1, =0x00800214
+    ldrb    r0, [r1]
+    lsl     r0, r0, #31
+    lsr     r0, r0, #31
+    mov     pc, lr
+
+.global UART3GetChar
+.thumb_func
+UART3GetChar:
+    push    {lr}
+1:
+    bl      UART3GetRxFIFOSize
+    cmp     r0, #0
+    beq     1b
+    bl      UART1ReadByte
+    pop     {pc}
+
+.global UART3PutChar
+.thumb_func
+UART3PutChar:
+    push    {r4,r5,lr}
+    mov     r4, r0
+    /*ldr     r1, =0x00800208*/
+    ldr     r1, =0x00800214
+    ldr     r5, =0x20
+1:
+    ldrb    r0, [r1]
+    and     r0, r5, r0
+    beq     1b
+    /*lsr     r0, r0, #2
+    bcc     1b*/
+    mov     r0, r4
+    bl      UART3WriteByte
+    pop     {r4,r5,pc}
+
+.global UART3WriteString
+.thumb_func
+UART3WriteString:
+    push    {r4,r5,lr}
+    mov     r4, r0
+1:
+    ldrb    r5, [r4]
+    cmp     r5, #0
+    beq     3f
+
+    mov     r0, r5
+    bl      UART3PutChar
+
+    add     r4, #1
+    b       1b
+3:
+    pop     {r4,r5,pc}

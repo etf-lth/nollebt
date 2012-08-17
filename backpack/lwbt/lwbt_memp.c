@@ -152,6 +152,7 @@ void * lwbt_memp_malloc(lwbt_memp_t type)
 		MEMSET(mem, 0, memp_sizes[type]);	
 		return mem;
 	} else {
+        printf("lwbt_memp_malloc: ZOMG!\n");
 		return NULL;
 	}
 }

@@ -102,13 +102,6 @@ int init_hook(void)
 {
     InitDataZeroBSS();
 
-    //InitHW();
-    //UARTInit();
-    //UARTSetBaudRate(UART_115200);
-
-    // Wait for the UART to empty the TX buffer
-    //while (UARTGetTxFIFOSize() > 0) ;
-
     // We must return 0, or we'll get unknown behaviour
     return 0;
 }
@@ -153,6 +146,10 @@ int lwbt_init(void)
 
 void lwbt_timer(void)
 {
+    unsigned int tick = OSE_get_ticks();
+
+    //printf("\x1b[s\x1b[H\x1b[44m{ NolleBT %08x }\x1b[0m\x1b[u", tick);
+
     //printf("lwbt_timer\n");
 	l2cap_tmr();
 	rfcomm_tmr();
@@ -168,9 +165,32 @@ void bpMain(void)
     //asm ("mov %0, sp":"=r" (sp));
 
     //UART2SetBaudRate(UART_115200);
+    //UART1SetBaudRate(UART_9600);
 
+    //InitHW();
+    //UARTInit();
     printf("IRMA Backpack (c) 2012 <fredrik@z80.se>\n");
     printf("Build: %s, %s\n\n", build_time, build_comment);
+
+    //UART2WriteString("Uart 2!\n\r");
+    //UART3SetBaudRate(UART_9600);
+    //UART3WriteString("Uart 3! wej wej wej wej wej wej wej\n\r");
+    
+    //UART3PutChar('k');
+    //UART3PutChar('o');
+    //UART3PutChar('n');
+    //UART3PutChar('g');
+    //UART3PutChar('o');
+    //UART2WriteString("Uart 2 again!\n\r");
+    //UART1SetBaudRate(UART_9600);
+    //UART1WriteString("*UART1*\n\r");
+    //printf("Wrote to UART1\n");
+
+    //UART3SetBaudRate(UART_9600);
+    //UART3WriteString("*UART3*\n\r");
+    //printf("Wrote to UART3\n");
+
+    //for(;;);
 
     //printf("My stack is at %08x\n", sp);
     
