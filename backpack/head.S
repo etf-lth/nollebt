@@ -12,7 +12,7 @@
 .int        backpackProc
 .int        procmem+2048
 
-.text
+/*.text
 .global InitHW
 .thumb_func
 InitHW:
@@ -35,4 +35,4 @@ InitHW:
     mov     r1, #0x26
     strb    r1, [r0]
 
-    mov     pc, lr
+    mov     pc, lr*/

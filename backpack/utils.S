@@ -37,7 +37,7 @@ WriteHex:
     mov     r0, r7
     lsr     r0, r6
     bl      NibbleToHex
-    bl      UART1PutChar
+    bl      UART2PutChar
     cmp     r6, #0
     beq     .L3
     sub     r6, #4

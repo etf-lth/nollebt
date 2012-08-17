@@ -79,6 +79,31 @@ void __div0(void)
 }
 
 /*
+ * IT'S A TRAP!
+ */
+void trap(unsigned int dummy)
+{
+    UART2WriteString("\n\r\n\r####### IT'S A TRAP! #######\n\r\n\r");
+
+    unsigned int *ptr = &dummy;
+    int i;
+    for (i=0; i<32; i++, ptr++) {
+        WriteHex((unsigned int)ptr);
+        UART2WriteString(": ");
+        WriteHex(*ptr);
+
+        if (*ptr > 0x01000000 && *ptr < 0x010fffff) {
+            UART2WriteString(" <-- ");
+        }
+
+        UART2WriteString("\n");
+    }
+
+    UART2WriteString("\n\r#### End of stack trace ####\n\r");
+    for (;;) ;
+}
+
+/*
  * Initialize the data segment from flash and clear the .bss seg.
  */
 void InitDataZeroBSS(void)
@@ -168,6 +193,7 @@ void bpMain(void)
     //UART1SetBaudRate(UART_9600);
 
     //InitHW();
+    //*((unsigned short *)0x00800d04) = 0xffff;
     //UARTInit();
     printf("IRMA Backpack (c) 2012 <fredrik@z80.se>\n");
     printf("Build: %s, %s\n\n", build_time, build_comment);
