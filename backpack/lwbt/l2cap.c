@@ -772,7 +772,13 @@ l2cap_process_sig(struct pbuf *q, struct l2cap_hdr *l2caphdr, struct bd_addr *bd
 				break;
 		} /* switch */
 		len = len - (sighdr->len + L2CAP_SIGHDR_LEN);
-		pbuf_header(p, -(sighdr->len));
+
+        // Triggar fel! ZOMG!
+        //printf("fail begin %d, %d, %d\n", sighdr->len, p->len);
+        if (p->len >= sighdr->len) {
+		    pbuf_header(p, -(sighdr->len));
+        }
+        //printf("fail end\n");
 	} /* while */
 }
 

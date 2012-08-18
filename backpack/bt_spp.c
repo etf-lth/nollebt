@@ -148,6 +148,8 @@ err_t rfcomm_disconnected(void *arg, struct rfcomm_pcb *pcb, err_t err)
 
     spp_pcb = NULL;
 
+    printf("Disconnected, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
+
 	LWIP_DEBUGF(BT_SPP_DEBUG, ("rfcomm_disconnected: CN = %d\n", rfcomm_cn(pcb)));
 	if(rfcomm_cn(pcb) != 0) {
 		; //ppp_lp_disconnected(pcb);
