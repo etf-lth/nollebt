@@ -61,6 +61,8 @@ err_t pin_req(void *arg, struct bd_addr *bdaddr);
 err_t l2cap_connected(void *arg, struct l2cap_pcb *l2cappcb, u16_t result, u16_t status);
 err_t bt_spp_init();
 
+extern void nolle_transmit(unsigned char type, void *data, unsigned char len);
+
 struct rfcomm_pcb *spp_pcb;
 
 struct bt_state {
@@ -148,7 +150,8 @@ err_t rfcomm_disconnected(void *arg, struct rfcomm_pcb *pcb, err_t err)
 
     spp_pcb = NULL;
 
-    printf("Disconnected, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
+    //printf("Disconnected, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
+    nolle_transmit(0x02, NULL, 0);
 
 	LWIP_DEBUGF(BT_SPP_DEBUG, ("rfcomm_disconnected: CN = %d\n", rfcomm_cn(pcb)));
 	if(rfcomm_cn(pcb) != 0) {
@@ -208,12 +211,13 @@ err_t spp_recv(void *arg, struct rfcomm_pcb *pcb, struct pbuf *p, err_t err)
 	}*/
 
 	for(q = p; q != NULL; q = q->next) {
-        int i;
-		for(i = 0; i < q->len; ++i) {
+        nolle_transmit(0x03, (u8_t*)q->payload, q->len);
+        //int i;
+		//for(i = 0; i < q->len; ++i) {
 			//LWIP_DEBUGF(BT_SPP_DEBUG, ("spp_recv: 0x%02x\n", ((u8_t *)q->payload)[i]));
             //printf("%c", ((u8_t *)q->payload)[i]);
-            UART2PutChar(((u8_t *)q->payload)[i]);
-		}
+            //UART2PutChar(((u8_t *)q->payload)[i]);
+		//}
 		//LWIP_DEBUGF(BT_SPP_DEBUG, ("spp_recv: STOP\n"));
 	}
 	
@@ -241,6 +245,16 @@ void spp_write(char *buf, int len)
 	pbuf_free(q);
 }
 
+void spp_disconnect(void)
+{
+    if (!spp_pcb) {
+        return;
+    }
+
+    rfcomm_disconnect(spp_pcb);
+
+}
+
 err_t rfcomm_accept(void *arg, struct rfcomm_pcb *pcb, err_t err) 
 {
 	LWIP_DEBUGF(BT_SPP_DEBUG, ("rfcomm_accept: CN = %d\n", rfcomm_cn(pcb)));
@@ -250,18 +264,26 @@ err_t rfcomm_accept(void *arg, struct rfcomm_pcb *pcb, err_t err)
 		//set recv callback
 		rfcomm_recv(pcb, spp_recv);
 
-        printf("Incoming connection, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
-	    struct pbuf *q = NULL;
+        //printf("Incoming connection, cl=%02x, %x\n", pcb->cl, rfcomm_cl(pcb));
+        {
+            unsigned char buf[32];
+            unsigned char *addr = pcb->l2cappcb->remote_bdaddr.addr;
+            sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x", addr[5], addr[4], addr[3],
+                    addr[2], addr[1], addr[0]);
+            nolle_transmit(0x01, buf, strlen(buf));
+        }
+
+	    /*struct pbuf *q = NULL;
         char str[] = "IRMA backpack säger hej!\n";
 	    q = pbuf_alloc(PBUF_RAW, strlen(str), PBUF_RAM);
-        memcpy(q->payload, str, strlen(str));
+        memcpy(q->payload, str, strlen(str));*/
 
 	    //if (rfcomm_cl(pcb)) {
 		//    rfcomm_uih_credits(pcb, PBUF_POOL_SIZE - rfcomm_remote_credits(pcb), q);
 	    //} else {
-		    rfcomm_uih(pcb, rfcomm_cn(pcb), q);
+		//    rfcomm_uih(pcb, rfcomm_cn(pcb), q);
 	    //}
-	    pbuf_free(q);
+	    //pbuf_free(q);
 	}
 
     spp_pcb = pcb;
@@ -706,7 +728,7 @@ err_t command_complete(void *arg, struct hci_pcb *pcb, u8_t ogf, u8_t ocf, u8_t 
 				case HCI_WRITE_COD:
 					if(result == HCI_SUCCESS) {
 						LWIP_DEBUGF(BT_SPP_DEBUG, ("Successful HCI_WRITE_COD.\n"));
-                        sprintf(devname, "mojt-%02x%02x%02x",
+                        sprintf(devname, "blinkmojt-%02x%02x%02x",
                                 bt_spp_state.bdaddr.addr[0],
                                 bt_spp_state.bdaddr.addr[1],
                                 bt_spp_state.bdaddr.addr[2]);

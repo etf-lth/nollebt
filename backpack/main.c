@@ -181,6 +181,50 @@ void lwbt_timer(void)
 	bt_spp_tmr();
 }
 
+void nolle_transmit(unsigned char type, void *data, unsigned char len)
+{
+    UART2PutChar(0xa5);
+    UART2PutChar(type);
+    UART2PutChar(len);
+    
+    unsigned char *ptr = data;
+    while (len--) {
+        UART2PutChar(*ptr++);
+    }
+}
+
+void nolle_receive(unsigned char *data, unsigned char inlen)
+{
+    static unsigned char buf[256], idx = 0;
+
+    while (inlen--) {
+        buf[idx++] = *data++;
+
+        if (idx == 1 && buf[0] != 0xa5) {
+            idx = 0;
+            continue;
+        }
+
+        if ((idx >= 3) && (buf[2] == idx-3)) {
+            switch (buf[1]) {
+            case 0x02:
+                spp_disconnect();
+                break;
+
+            case 0x03:
+                spp_write(&buf[3], buf[2]);
+                break;
+
+            case 0x04:
+                hci_change_local_name(&buf[3], buf[2]);
+                break;
+            }
+
+            idx = 0;
+        }
+    }
+}
+
 /*
  * This is the entry point of our thread
  */
@@ -195,8 +239,11 @@ void bpMain(void)
     //InitHW();
     //*((unsigned short *)0x00800d04) = 0xffff;
     //UARTInit();
-    printf("IRMA Backpack (c) 2012 <fredrik@z80.se>\n");
-    printf("Build: %s, %s\n\n", build_time, build_comment);
+    {
+        unsigned char buf[64];
+        sprintf(buf, "IRMA Backpack, Build: %s %s", build_time, build_comment);
+        nolle_transmit(0x00, buf, strlen(buf));
+    }
 
     //UART2WriteString("Uart 2!\n\r");
     //UART3SetBaudRate(UART_9600);
@@ -230,6 +277,7 @@ void bpMain(void)
 
     //printf("We're going in...\n\n");
 
+
     static const SIGSELECT anysig[] = {0};
     for(;;) {
         SIGNAL *s = OSE_receive((SIGSELECT *) anysig);
@@ -246,7 +294,8 @@ void bpMain(void)
             break;
 
         case SIG_UART_RX:
-            spp_write(&s->raw[3], s->raw[2]);
+            //spp_write(&s->raw[3], s->raw[2]);
+            nolle_receive(&s->raw[3], s->raw[2]);
             break;
 
         default:

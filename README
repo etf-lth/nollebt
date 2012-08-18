@@ -1,0 +1,8 @@
+0xa5 [type] [len] [data]
+
+type    host/irma   desc
+0x00        <-      bluetooth boot
+0x01        <-      connected
+0x02        <-      disconnected
+0x03       <->      data
+0x04        ->      set friendly name
