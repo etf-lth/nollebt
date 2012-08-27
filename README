@@ -6,3 +6,5 @@ type    host/irma   desc
 0x02        <-      disconnected
 0x03       <->      data
 0x04        ->      set friendly name
+0x05        ->      set inquiry scan
+0x06        <-      local bdaddr

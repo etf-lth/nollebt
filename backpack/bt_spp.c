@@ -80,11 +80,16 @@ static const u8_t spp_service_record[] =
 		SDP_DES_SIZE8, 0x16, 
 			SDP_UINT16, 0x0, 0x1, /* Service class ID list attribute */
 			SDP_DES_SIZE8, 17,
-				SDP_UUID128, 0x00, 0x00, 0x00, 0x00,
+				SDP_UUID128, 0x53, 0xc6, 0x0a, 0x67,
+                    0xb9, 0x1d,
+                    0x48, 0x8d,
+                    0xa0, 0xc6,
+                    0xb7, 0x0c, 0x75, 0x2a, 0x74, 0x47,
+                    /*0x00, 0x00, 0x00, 0x00,
 					0xde, 0xca,
 					0xfa, 0xde,
 					0xde, 0xca,
-					0xde, 0xaf, 0xde, 0xca, 0xca, 0xff,
+					0xde, 0xaf, 0xde, 0xca, 0xca, 0xff,*/
 		SDP_DES_SIZE8, 0x11,
 			SDP_UINT16, 0x0, 0x4, /* Protocol descriptor list attribute */
 			SDP_DES_SIZE8, 0xc, 
@@ -619,8 +624,8 @@ err_t acl_wpl_complete(void *arg, struct bd_addr *bdaddr)
  */
 err_t acl_conn_complete(void *arg, struct bd_addr *bdaddr)
 {
-	//hci_wlp_complete(acl_wpl_complete);
-	//hci_write_link_policy_settings(bdaddr, 0x000F);
+	hci_wlp_complete(acl_wpl_complete);
+	hci_write_link_policy_settings(bdaddr, 0x000F);
 	return ERR_OK;
 }
 
@@ -635,6 +640,15 @@ err_t read_bdaddr_complete(void *arg, struct bd_addr *bdaddr)
 	LWIP_DEBUGF(BT_SPP_DEBUG, ("read_bdaddr_complete: %02x:%02x:%02x:%02x:%02x:%02x\n",
 				bdaddr->addr[5], bdaddr->addr[4], bdaddr->addr[3],
 				bdaddr->addr[2], bdaddr->addr[1], bdaddr->addr[0]));
+
+    {
+        unsigned char buf[32];
+        unsigned char *addr = bdaddr->addr;
+        sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x", addr[5], addr[4], addr[3],
+                addr[2], addr[1], addr[0]);
+        nolle_transmit(0x06, buf, strlen(buf));
+    }
+
     return ERR_OK;
 }
 

@@ -171,14 +171,20 @@ int lwbt_init(void)
 
 void lwbt_timer(void)
 {
-    unsigned int tick = OSE_get_ticks();
+    //unsigned int tick = OSE_get_ticks();
 
     //printf("\x1b[s\x1b[H\x1b[44m{ NolleBT %08x }\x1b[0m\x1b[u", tick);
 
     //printf("lwbt_timer\n");
+    
 	l2cap_tmr();
 	rfcomm_tmr();
 	bt_spp_tmr();
+
+    static int inquiry_timeout = 60;
+    if ((inquiry_timeout) && (!(--inquiry_timeout))) {
+        hci_write_scan_enable(HCI_SCAN_EN_PAGE);
+    }
 }
 
 void nolle_transmit(unsigned char type, void *data, unsigned char len)
@@ -217,6 +223,10 @@ void nolle_receive(unsigned char *data, unsigned char inlen)
 
             case 0x04:
                 hci_change_local_name(&buf[3], buf[2]);
+                break;
+
+            case 0x05:
+                hci_write_scan_enable((buf[2] ? HCI_SCAN_EN_INQUIRY : 0) | HCI_SCAN_EN_PAGE);
                 break;
             }
 
@@ -276,7 +286,6 @@ void bpMain(void)
     timer_add(1000, SIG_TIMER);
 
     //printf("We're going in...\n\n");
-
 
     static const SIGSELECT anysig[] = {0};
     for(;;) {
